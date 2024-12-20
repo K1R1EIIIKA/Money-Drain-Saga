@@ -1,0 +1,117 @@
+﻿version: '3.8'
+
+services:
+  api_gateway:
+    build:
+      context: /backend/api_gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8000"
+    depends_on:
+      - auth_service
+      - transactions_service
+      - shop_service
+      - notifications_service
+
+  auth_service:
+    build:
+      context: /backend/auth_service
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345
+      POSTGRES_DB: postgres
+      DEBUG: 1
+      DJANGO_SETTINGS_MODULE: auth_service.settings
+    depends_on:
+      - auth_db
+    ports:
+      - "8001:8000"
+
+  auth_db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345
+      POSTGRES_DB: postgres
+    ports:
+      - "5434:5432"
+
+  transactions_service:
+    build:
+      context: /backend/transactions_service
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345
+      POSTGRES_DB: postgres
+      DEBUG: 1
+      DJANGO_SETTINGS_MODULE: transactions_service.settings
+    depends_on:
+      - transactions_db
+    ports:
+      - "8002:8000"
+
+  transactions_db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345
+      POSTGRES_DB: postgres
+    ports:
+      - "5433:5432"
+
+  shop_service:
+    build:
+      context: /backend/shop_service
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345
+      POSTGRES_DB: postgres
+      DEBUG: 1
+      DJANGO_SETTINGS_MODULE: shop_service.settings
+    depends_on:
+      - shop_db
+    ports:
+      - "8003:8000"
+
+  shop_db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345
+      POSTGRES_DB: postgres
+    ports:
+      - "5435:5432"
+
+  notifications_service:
+    environment:
+      DEBUG: 1
+      DJANGO_SETTINGS_MODULE: notifications_service.settings
+    volumes:
+      - .:/app
+    build:
+      context: /backend/notifications_service
+      dockerfile: Dockerfile
+    ports:
+      - "8004:8000"
+    depends_on:
+      - rabbitmq
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
