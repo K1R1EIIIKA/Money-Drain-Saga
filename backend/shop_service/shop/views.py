@@ -47,3 +47,25 @@ class ItemViewSet(viewsets.ModelViewSet):
             updated_items.append(updated_item)
 
         return Response({"updated_items": ItemSerializer(updated_items, many=True).data}, status=status.HTTP_200_OK)
+
+
+class BuyItemApiView(viewsets.ViewSet):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def create(self, request):
+        user_id = self.request.user['payload']['id']
+        item_id = request.data.get('item_id')
+
+        try:
+            item = Item.objects.get(id=item_id, user_id=user_id)
+        except Item.DoesNotExist:
+            raise PermissionDenied(f"Item with id {item_id} does not exist or belongs to another user.")
+
+        if item.stock <= 0:
+            raise PermissionDenied("Item is out of stock.")
+
+        item.stock -= 1
+        item.save()
+
+        return Response({"message": "Item bought successfully."}, status=status.HTTP_200_OK)

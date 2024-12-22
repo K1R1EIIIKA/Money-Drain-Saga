@@ -1,12 +1,13 @@
 from datetime import datetime, timedelta
 
 import jwt
-from django.contrib.auth.models import User
-from rest_framework import status
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 class RegisterView(APIView):
     def post(self, request):
@@ -46,7 +47,6 @@ class VerifyTokenView(APIView):
         return Response({"payload": payload})
 
 
-
 class LoginView(APIView):
     def post(self, request):
         print(jwt.__version__)
@@ -67,7 +67,7 @@ class LoginView(APIView):
 
         access_token_payload = {
             'id': user.id,
-            'exp': datetime.utcnow() + timedelta(seconds=2600*24),
+            'exp': datetime.utcnow() + timedelta(seconds=2600 * 24),
             'iat': datetime.utcnow()
         }
 
@@ -122,7 +122,7 @@ class RefreshTokenView(APIView):
 
 class UserView(APIView):
     def get(self, request):
-        token = request.COOKIES.get('jwt')
+        token = request.headers.get('jwt')
         print(token)
 
         if not token:
@@ -138,11 +138,11 @@ class UserView(APIView):
         response = Response()
         response.data = {
             'id': user.id,
-            'username': user.username
+            'username': user.username,
+            'money': user.money
         }
 
         return response
-
 
 
 class LogoutView(APIView):
