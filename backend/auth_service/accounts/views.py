@@ -191,6 +191,7 @@ class SpendMoneyView(APIView):
         token = request.headers.get('jwt')
         if not token:
             raise AuthenticationFailed('Не авторизован')
+        print(111)
 
         try:
             payload = jwt.decode(token, 'secret', algorithms=['HS256'])

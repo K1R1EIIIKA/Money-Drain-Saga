@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ViewSet
 from rest_framework.decorators import action
 from rest_framework.views import APIView
-from shop.utils.rabbitmq import send_message_to_queue
+from shop.utils.rabbitmq import send_spend_money_request
 import requests
 
 from .models import Item
@@ -70,6 +70,8 @@ class BuyItemApiView(APIView):
         item_id = request.data.get("item_id")
         token = request.headers.get("Authorization")
 
+        money = float(Item.objects.get(id=item_id).price)
+
         if not item_id or not token:
             raise PermissionDenied("Недостаточно данных для покупки.")
 
@@ -77,11 +79,11 @@ class BuyItemApiView(APIView):
         message = {
             "user_id": user_id,
             "item_id": item_id,
-            "money": request.data.get("money"),
+            "money": money,
             "token": token.split(' ')[1],  # Извлекаем токен
         }
 
         # Отправляем сообщение в очередь
-        send_message_to_queue('spend_money', message)
+        send_spend_money_request(user_id, item_id, money, token)
 
         return Response({"message": "Задача на покупку отправлена в очередь."})

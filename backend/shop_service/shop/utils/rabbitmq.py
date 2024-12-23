@@ -1,23 +1,32 @@
 ﻿import pika
 import json
 
-def send_message_to_queue(queue_name, message):
-    # Настроим подключение и канал RabbitMQ
-    connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost', port=5672))
+RABBITMQ_HOST = 'localhost'
+RABBITMQ_PORT = 5672
+
+def send_spend_money_request(user_id, item_id, money, token):
+    connection = pika.BlockingConnection(pika.ConnectionParameters(host=RABBITMQ_HOST, port=RABBITMQ_PORT))
     channel = connection.channel()
 
-    # Создаем очередь с параметром durable=True, если она не существует
-    channel.queue_declare(queue=queue_name, durable=True)
+    # Убедимся, что очередь существует
+    channel.queue_declare(queue='spend_money', durable=True)
 
-    # Преобразуем сообщение в формат JSON и отправляем его в очередь
+    message = {
+        'user_id': user_id,
+        'item_id': item_id,
+        'money': money,
+        'token': token,
+    }
+
+    # Отправка сообщения в очередь
     channel.basic_publish(
         exchange='',
-        routing_key=queue_name,
+        routing_key='spend_money',
         body=json.dumps(message),
         properties=pika.BasicProperties(
-            delivery_mode=2,  # сообщение будет сохраняться на диске (durable)
+            delivery_mode=2,  # Сообщение будет сохраняться на диске
         )
     )
 
-    print(f"Сообщение отправлено в очередь {queue_name}")
+    print("Сообщение отправлено в очередь для обработки")
     connection.close()

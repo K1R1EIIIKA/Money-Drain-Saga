@@ -16,7 +16,7 @@ class JWTAuthentication(authentication.BaseAuthentication):
             return None
         if ',jwt=' in token:
             token = token.split(',jwt=')[0]
-        print(token)
+        print(token, 'token')
 
         try:
             payload = jwt.decode(token, 'secret', algorithms=['HS256'])
