@@ -2,10 +2,23 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
+import requests
 
 from .models import Item
 from .serializers import ItemSerializer
 from .authentication import JWTAuthentication
+
+GET_USER_URL = 'http://127.0.0.1:8001/user/'
+CREATE_TRANSACTION_URL = 'http://127.0.0.1:8002/transactions/create/'
+CHECK_VALID_TOKEN = 'http://127.0.0.1:8001/verify-token/'
+SPEND_MONEY_URL = 'http://127.0.0.1:8001/money/spend'
+
+def is_token_valid(token):
+    response = requests.post(CHECK_VALID_TOKEN, data={"token": token})
+    if response.status_code != 200:
+        return False
+
+    return True
 
 class ItemViewSet(viewsets.ModelViewSet):
     queryset = Item.objects.all()
@@ -54,18 +67,30 @@ class BuyItemApiView(viewsets.ViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request):
-        user_id = self.request.user['payload']['id']
-        item_id = request.data.get('item_id')
+        token = request.headers.get("Authorization")
+        if not token or not token.startswith("Bearer "):
+            raise PermissionDenied("Необходим токен аутентификации")
 
-        try:
-            item = Item.objects.get(id=item_id, user_id=user_id)
-        except Item.DoesNotExist:
-            raise PermissionDenied(f"Item with id {item_id} does not exist or belongs to another user.")
+        token = token.split(" ")[1]
+        if not is_token_valid(token):
+            raise PermissionDenied("Токен недействителен")
 
-        if item.stock <= 0:
-            raise PermissionDenied("Item is out of stock.")
+        user_data = requests.get(GET_USER_URL, headers={"jwt": token}).json()
+        if not user_data:
+            raise PermissionDenied("Пользователь не найден")
 
-        item.stock -= 1
+        user_money = user_data.get("money")
+        item_id = request.data.get("item_id")
+        item = Item.objects.filter(id=item_id).first()
+        if not item:
+            raise PermissionDenied("Товар не найден")
+
+        if user_money < item.price:
+            raise PermissionDenied("Недостаточно средств")
+
+        if requests.post(SPEND_MONEY_URL, headers={"jwt": token}, data={"money": item.price}).status_code != 200:
+            raise PermissionDenied("Ошибка списания средств")
+
         item.save()
 
-        return Response({"message": "Item bought successfully."}, status=status.HTTP_200_OK)
+        return Response({"message": "Товар успешно куплен"}, status=status.HTTP_200_OK)

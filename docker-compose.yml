@@ -35,7 +35,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 12345
-      POSTGRES_DB: postgres
+      POSTGRES_DB: postgres_auth
     ports:
       - "5434:5432"
 
@@ -61,7 +61,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 12345
-      POSTGRES_DB: postgres
+      POSTGRES_DB: postgres_transactions
     ports:
       - "5433:5432"
 
@@ -87,7 +87,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 12345
-      POSTGRES_DB: postgres
+      POSTGRES_DB: postgres_shop
     ports:
       - "5435:5432"
 

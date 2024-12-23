@@ -79,11 +79,11 @@ WSGI_APPLICATION = 'transactions_service.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'postgres',
+        'NAME': 'postgres_transactions',
         'USER': 'postgres',
         'PASSWORD': '12345',
-        'HOST': 'transactions_db',
-        'PORT': '5432',
+        'HOST': 'localhost',
+        'PORT': '5433',
     }
 }
 

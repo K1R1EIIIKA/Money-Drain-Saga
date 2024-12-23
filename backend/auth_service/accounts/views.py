@@ -9,6 +9,7 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
+
 class RegisterView(APIView):
     def post(self, request):
         username = request.data['username']
@@ -157,6 +158,54 @@ class LogoutView(APIView):
 
         response.data = {
             'message': 'Успешный выход'
+        }
+
+        return response
+
+
+class AddMoneyView(APIView):
+    def post(self, request):
+        token = request.headers.get('jwt')
+        if not token:
+            raise AuthenticationFailed('Не авторизован')
+
+        try:
+            payload = jwt.decode(token, 'secret', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed('Токен истек')
+
+        user = User.objects.filter(id=payload['id']).first()
+        user.money += int(request.data['money'])
+        user.save()
+
+        response = Response()
+        response.data = {
+            'money': user.money
+        }
+
+        return response
+
+
+class SpendMoneyView(APIView):
+    def post(self, request):
+        token = request.headers.get('jwt')
+        if not token:
+            raise AuthenticationFailed('Не авторизован')
+
+        try:
+            payload = jwt.decode(token, 'secret', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError:
+            raise AuthenticationFailed('Токен истек')
+
+        user = User.objects.filter(id=payload['id']).first()
+        user.money -= int(request.data['money'])
+        if user.money < 0:
+            raise AuthenticationFailed('Недостаточно средств')
+        user.save()
+
+        response = Response()
+        response.data = {
+            'money': user.money
         }
 
         return response
