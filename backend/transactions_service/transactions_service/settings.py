@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-8aoo*xje#v^$&vh^-(*1%-+62!3zd3&-peom$*68*0n=lx__k-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['authservice', 'localhost', '127.0.0.1', 'shopservice', 'notificationsservice', 'transactionsservice', '0.0.0.0']
 
 
 # Application definition
@@ -82,8 +82,10 @@ DATABASES = {
         'NAME': 'postgres_transactions',
         'USER': 'postgres',
         'PASSWORD': '12345',
-        'HOST': 'localhost',
-        'PORT': '5433',
+        # 'HOST': 'localhost',
+        'HOST': 'transactions_db',
+        # 'PORT': '5433',
+        'PORT': '5432',
     }
 }
 

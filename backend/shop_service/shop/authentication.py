@@ -2,7 +2,7 @@
 from rest_framework.authentication import BaseAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 
-AUTH_SERVICE_URL = "http://127.0.0.1:8001/verify-token/"  # Укажите путь к проверке токена
+AUTH_SERVICE_URL = "http://authservice:8000/verify-token/"  # Укажите путь к проверке токена
 
 
 class JWTAuthentication(BaseAuthentication):
@@ -20,6 +20,6 @@ class JWTAuthentication(BaseAuthentication):
             user_data = response.json()  # Например: {"id": 1, "username": "test_user"}
             print(user_data)
         except requests.RequestException:
-            raise AuthenticationFailed("Ошибка соединения с auth_service")
+            raise AuthenticationFailed("Ошибка соединения с authservice")
 
         return user_data, None

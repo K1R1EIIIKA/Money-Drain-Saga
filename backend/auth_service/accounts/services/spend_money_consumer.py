@@ -22,7 +22,7 @@ from rest_framework.test import APIRequestFactory
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
-RABBITMQ_HOST = 'localhost'
+RABBITMQ_HOST = 'rabbitmq'
 RABBITMQ_PORT = 5672
 
 def spend_money_from_message(ch, method, properties, body):
@@ -41,7 +41,7 @@ def spend_money_from_message(ch, method, properties, body):
 
         # Вызов метода для списания средств
 
-        URL = 'http://127.0.0.1:8001/money/spend'
+        URL = 'http://authservice:8000/money/spend'
 
         result = requests.post(URL, data={"money": int(money)}, headers={"jwt": token})
         if result:

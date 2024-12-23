@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-&rmjqj1sci*nb%9lle5t$wbk$f6s3_gm&0@flb*!+c+whool5a
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['authservice', 'localhost', '127.0.0.1', 'shopservice', 'notificationsservice', 'transactionsservice', '0.0.0.0']
 
 
 # Application definition
@@ -82,8 +82,10 @@ DATABASES = {
         'NAME': 'postgres_shop',
         'USER': 'postgres',
         'PASSWORD': '12345',
-        'HOST': 'localhost',
-        'PORT': '5435',
+        # 'HOST': 'localhost',
+        'HOST': 'shop_db',
+        'PORT': '5432',
+        # 'PORT': '5435',
     }
 }
 

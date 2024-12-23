@@ -9,10 +9,10 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE',
 django.setup()
 from shop.models import UserItem
 
-RABBITMQ_HOST = 'localhost'
+RABBITMQ_HOST = 'rabbitmq'
 RABBITMQ_PORT = 5672
-AUTH_SERVICE_URL = 'http://127.0.0.1:8001/user'
-SPEND_MONEY_URL = 'http://127.0.0.1:8001/money/spend'
+AUTH_SERVICE_URL = 'http://localhost:8000/user'
+SPEND_MONEY_URL = 'http://localhost:8000/money/spend'
 
 
 def get_user_data(user_id, token):

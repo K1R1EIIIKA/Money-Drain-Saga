@@ -1,7 +1,7 @@
 ﻿import pika
 import json
 
-RABBITMQ_HOST = 'localhost'
+RABBITMQ_HOST = 'rabbitmq'
 RABBITMQ_PORT = 5672
 
 def send_spend_money_request(user_id, item_id, money, token):

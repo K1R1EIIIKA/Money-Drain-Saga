@@ -9,7 +9,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE',
 django.setup()
 from transactions.models import Transaction
 
-RABBITMQ_HOST = 'localhost'
+RABBITMQ_HOST = 'rabbitmq'
 RABBITMQ_PORT = 5672
 
 def add_transaction(ch, method, properties, body):

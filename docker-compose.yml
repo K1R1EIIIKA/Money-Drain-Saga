@@ -8,12 +8,12 @@ services:
     ports:
       - "8080:8000"
     depends_on:
-      - auth_service
-      - transactions_service
-      - shop_service
-      - notifications_service
+      - authservice
+      - transactionsservice
+      - shopservice
+      - notificationsservice
 
-  auth_service:
+  authservice:
     build:
       context: /backend/auth_service
       dockerfile: Dockerfile
@@ -25,10 +25,34 @@ services:
       POSTGRES_DB: postgres
       DEBUG: 1
       DJANGO_SETTINGS_MODULE: auth_service.settings
+      DJANGO_SUPERUSER_USERNAME: k1r1eiiika
+      DJANGO_SUPERUSER_EMAIL: k1r1eiiika@example.com
+      DJANGO_SUPERUSER_PASSWORD: 12345
     depends_on:
       - auth_db
     ports:
       - "8001:8000"
+
+  auth_consumer:
+    build:
+      context: /backend/auth_service
+      dockerfile: Dockerfile
+    command: [ "python", "accounts/services/spend_money_consumer.py" ]
+    environment:
+      PYTHONPATH: /backend/auth_service
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345
+      POSTGRES_DB: postgres
+      DEBUG: 1
+      DJANGO_SETTINGS_MODULE: auth_service.settings
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+    depends_on:
+      - auth_db
+      - rabbitmq
+    volumes:
+      - .:/app
+
 
   auth_db:
     image: postgres:latest
@@ -39,7 +63,7 @@ services:
     ports:
       - "5434:5432"
 
-  transactions_service:
+  transactionsservice:
     build:
       context: /backend/transactions_service
       dockerfile: Dockerfile
@@ -51,10 +75,33 @@ services:
       POSTGRES_DB: postgres
       DEBUG: 1
       DJANGO_SETTINGS_MODULE: transactions_service.settings
+      DJANGO_SUPERUSER_USERNAME: k1r1eiiika
+      DJANGO_SUPERUSER_EMAIL: k1r1eiiika@example.com
+      DJANGO_SUPERUSER_PASSWORD: 12345
     depends_on:
       - transactions_db
     ports:
       - "8002:8000"
+
+  transactions_consumer:
+    build:
+      context: /backend/transactions_service
+      dockerfile: Dockerfile
+    command: [ "python", "transactions/services/transaction_consumer.py" ]
+    environment:
+      PYTHONPATH: /backend/transactions_service
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345
+      POSTGRES_DB: postgres
+      DEBUG: 1
+      DJANGO_SETTINGS_MODULE: transactions_service.settings
+      RABBITMQ_HOST: rabbitmq  # Убедитесь, что consumer использует корректный хост
+      RABBITMQ_PORT: 5672
+    depends_on:
+      - transactions_db
+      - rabbitmq
+    volumes:
+      - .:/app
 
   transactions_db:
     image: postgres:latest
@@ -65,7 +112,7 @@ services:
     ports:
       - "5433:5432"
 
-  shop_service:
+  shopservice:
     build:
       context: /backend/shop_service
       dockerfile: Dockerfile
@@ -77,10 +124,33 @@ services:
       POSTGRES_DB: postgres
       DEBUG: 1
       DJANGO_SETTINGS_MODULE: shop_service.settings
+      DJANGO_SUPERUSER_USERNAME: k1r1eiiika
+      DJANGO_SUPERUSER_EMAIL: k1r1eiiika@example.com
+      DJANGO_SUPERUSER_PASSWORD: 12345
     depends_on:
       - shop_db
     ports:
       - "8003:8000"
+
+  shop_consumer:
+    build:
+      context: /backend/shop_service
+      dockerfile: Dockerfile
+    command: [ "python", "shop/services/spend_money_consumer.py" ]
+    environment:
+      PYTHONPATH: /backend/shop_service
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 12345
+      POSTGRES_DB: postgres
+      DEBUG: 1
+      DJANGO_SETTINGS_MODULE: shop_service.settings
+      RABBITMQ_HOST: rabbitmq  # Убедитесь, что consumer использует корректный хост
+      RABBITMQ_PORT: 5672
+    depends_on:
+      - shop_db
+      - rabbitmq
+    volumes:
+      - .:/app
 
   shop_db:
     image: postgres:latest
@@ -91,10 +161,13 @@ services:
     ports:
       - "5435:5432"
 
-  notifications_service:
+  notificationsservice:
     environment:
       DEBUG: 1
       DJANGO_SETTINGS_MODULE: notifications_service.settings
+      DJANGO_SUPERUSER_USERNAME: k1r1eiiika
+      DJANGO_SUPERUSER_EMAIL: k1r1eiiika@example.com
+      DJANGO_SUPERUSER_PASSWORD: 12345
     volumes:
       - .:/app
     build:

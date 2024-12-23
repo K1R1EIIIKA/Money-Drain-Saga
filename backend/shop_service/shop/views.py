@@ -12,10 +12,10 @@ from .models import Item
 from .serializers import ItemSerializer
 from .authentication import JWTAuthentication
 
-GET_USER_URL = 'http://127.0.0.1:8001/user/'
-CREATE_TRANSACTION_URL = 'http://127.0.0.1:8002/transactions/create/'
-CHECK_VALID_TOKEN = 'http://127.0.0.1:8001/verify-token/'
-SPEND_MONEY_URL = 'http://127.0.0.1:8001/money/spend'
+GET_USER_URL = 'http://authservice:8000/user/'
+CREATE_TRANSACTION_URL = 'http://transactionsservice:8000/transactions/create/'
+CHECK_VALID_TOKEN = 'http://authservice:8000/verify-token/'
+SPEND_MONEY_URL = 'http://authservice:8000/money/spend'
 
 def is_token_valid(token):
     response = requests.post(CHECK_VALID_TOKEN, data={"token": token})

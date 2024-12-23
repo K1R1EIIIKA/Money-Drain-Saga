@@ -1,7 +1,7 @@
 ﻿import pika
 import json
 
-RABBITMQ_HOST = 'localhost'
+RABBITMQ_HOST = 'rabbitmq'
 RABBITMQ_PORT = 5672
 
 def send_transaction_request(user_id, amount, currency, status):
