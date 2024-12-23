@@ -1,7 +1,11 @@
 from django.core.exceptions import PermissionDenied, ValidationError
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.viewsets import ViewSet
 from rest_framework.decorators import action
+from rest_framework.views import APIView
+from shop.utils.rabbitmq import send_message_to_queue
 import requests
 
 from .models import Item
@@ -25,10 +29,6 @@ class ItemViewSet(viewsets.ModelViewSet):
     serializer_class = ItemSerializer
     authentication_classes = [JWTAuthentication]
     http_method_names = ['get', 'post', 'put', 'patch', 'delete']
-
-    def get_queryset(self):
-        user = self.request.user['payload']['id']
-        return self.queryset.filter(is_active=True, user_id=user)
 
     @action(detail=False, methods=['put'], url_path='bulk-update')
     def bulk_update(self, request, *args, **kwargs):
@@ -62,35 +62,26 @@ class ItemViewSet(viewsets.ModelViewSet):
         return Response({"updated_items": ItemSerializer(updated_items, many=True).data}, status=status.HTTP_200_OK)
 
 
-class BuyItemApiView(viewsets.ViewSet):
+class BuyItemApiView(APIView):
     authentication_classes = [JWTAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
 
-    def create(self, request):
-        token = request.headers.get("Authorization")
-        if not token or not token.startswith("Bearer "):
-            raise PermissionDenied("Необходим токен аутентификации")
-
-        token = token.split(" ")[1]
-        if not is_token_valid(token):
-            raise PermissionDenied("Токен недействителен")
-
-        user_data = requests.get(GET_USER_URL, headers={"jwt": token}).json()
-        if not user_data:
-            raise PermissionDenied("Пользователь не найден")
-
-        user_money = user_data.get("money")
+    def post(self, request):
+        user_id = request.user['payload']['id']
         item_id = request.data.get("item_id")
-        item = Item.objects.filter(id=item_id).first()
-        if not item:
-            raise PermissionDenied("Товар не найден")
+        token = request.headers.get("Authorization")
 
-        if user_money < item.price:
-            raise PermissionDenied("Недостаточно средств")
+        if not item_id or not token:
+            raise PermissionDenied("Недостаточно данных для покупки.")
 
-        if requests.post(SPEND_MONEY_URL, headers={"jwt": token}, data={"money": item.price}).status_code != 200:
-            raise PermissionDenied("Ошибка списания средств")
+        # Подготовка данных для передачи в очередь
+        message = {
+            "user_id": user_id,
+            "item_id": item_id,
+            "money": request.data.get("money"),
+            "token": token.split(' ')[1],  # Извлекаем токен
+        }
 
-        item.save()
+        # Отправляем сообщение в очередь
+        send_message_to_queue('spend_money', message)
 
-        return Response({"message": "Товар успешно куплен"}, status=status.HTTP_200_OK)
+        return Response({"message": "Задача на покупку отправлена в очередь."})
