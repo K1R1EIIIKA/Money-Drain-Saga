@@ -21,7 +21,7 @@ def send_transaction_request(user_id, amount, currency, status):
                           routing_key='add_transaction',
                           body=json.dumps(message),
                             properties=pika.BasicProperties(
-                                delivery_mode=2,  # make message persistent
+                                delivery_mode=2,
                             ))
 
     print(f"Sent transaction request: {message}")

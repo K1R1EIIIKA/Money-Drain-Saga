@@ -2,7 +2,6 @@
 
 import django
 import requests
-from django.http import HttpRequest
 
 from accounts.utils.rabbitmq import send_transaction_request
 
@@ -12,12 +11,6 @@ django.setup()
 
 import pika
 import json
-from rest_framework.response import Response
-from rest_framework.exceptions import AuthenticationFailed
-import jwt
-from rest_framework.request import Request
-from rest_framework.test import APIRequestFactory
-
 
 from django.contrib.auth import get_user_model
 
@@ -31,15 +24,13 @@ def spend_money_from_message(ch, method, properties, body):
         user_id = data.get('user_id')
         item_id = data.get('item_id')
         token = data.get('token')
-        token = token.split(" ")[1]  # Извлекаем т
+        token = token.split(" ")[1]
         money = data.get('money')
 
         if not all([user_id, item_id, token]):
             print(f"Некорректные данные: {data}")
             ch.basic_ack(delivery_tag=method.delivery_tag)
             return
-
-        # Вызов метода для списания средств
 
         URL = 'http://authservice:8000/money/spend'
 
@@ -49,7 +40,6 @@ def spend_money_from_message(ch, method, properties, body):
         else:
             print(f"Ошибка при списании средств: {result.text}")
 
-        # Подтверждаем обработку сообщения
         ch.basic_ack(delivery_tag=method.delivery_tag)
 
         status = 'completed' if result else 'failed'
@@ -64,10 +54,8 @@ def start_consumer():
     connection = pika.BlockingConnection(pika.ConnectionParameters(host=RABBITMQ_HOST, port=RABBITMQ_PORT))
     channel = connection.channel()
 
-    # Убедимся, что очередь существует
     channel.queue_declare(queue='spend_money', durable=True)
 
-    # Подключаем callback-функцию
     channel.basic_consume(queue='spend_money', on_message_callback=spend_money_from_message)
 
     print("Ожидание сообщений...")

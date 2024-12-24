@@ -42,18 +42,15 @@ class ItemViewSet(viewsets.ModelViewSet):
         for item_data in data:
             item_id = item_data.get("id")
 
-            # Проверка существования предмета
             try:
                 item = Item.objects.get(id=item_id, user_id=user_id)
             except Item.DoesNotExist:
                 raise PermissionDenied(f"Item with id {item_id} does not exist or belongs to another user.")
 
-            # Если stock < 0, удаляем предмет
             if item_data.get("stock", 0) < 0:
                 item.delete()
                 continue
 
-            # Обновляем данные предмета
             serializer = self.get_serializer(item, data=item_data, partial=True)
             serializer.is_valid(raise_exception=True)
             updated_item = serializer.save()
@@ -75,15 +72,6 @@ class BuyItemApiView(APIView):
         if not item_id or not token:
             raise PermissionDenied("Недостаточно данных для покупки.")
 
-        # Подготовка данных для передачи в очередь
-        message = {
-            "user_id": user_id,
-            "item_id": item_id,
-            "money": money,
-            "token": token.split(' ')[1],  # Извлекаем токен
-        }
-
-        # Отправляем сообщение в очередь
         send_spend_money_request(user_id, item_id, money, token)
 
         return Response({"message": "Задача на покупку отправлена в очередь."})

@@ -57,7 +57,6 @@ class LoginView(APIView):
         username = remove_invisible_characters(username)
         password = remove_invisible_characters(password)
 
-        print(1111111111111111)
         user = User.objects.filter(username=username).first()
 
         if user is None:

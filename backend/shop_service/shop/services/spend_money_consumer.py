@@ -5,7 +5,7 @@ import os
 import django
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE',
-                      'shop_service.settings')  # Замените 'shop_service.settings' на ваш модуль настроек
+                      'shop_service.settings')
 django.setup()
 from shop.models import UserItem
 
@@ -16,7 +16,6 @@ SPEND_MONEY_URL = 'http://localhost:8000/money/spend'
 
 
 def get_user_data(user_id, token):
-    """Получить данные пользователя через auth_service"""
     headers = {"jwt": token}
     response = requests.get(AUTH_SERVICE_URL, headers=headers)
 
@@ -28,7 +27,6 @@ def get_user_data(user_id, token):
 
 
 def spend_money(user_id, token, amount):
-    """Списать деньги пользователя через auth_service"""
     headers = {"jwt": token}
     print(amount)
     data = {"money": amount}
@@ -56,23 +54,20 @@ def spend_money_callback(ch, method, properties, body):
             ch.basic_ack(delivery_tag=method.delivery_tag)
             return
 
-        # Получение данных пользователя
         user_data = get_user_data(user_id, token)
         if not user_data:
             print(f"Пользователь с ID {user_id} не найден.")
             ch.basic_ack(delivery_tag=method.delivery_tag)
             return
 
-        # Проверяем баланс
         user_money = user_data.get("money", 0)
-        item_price = 100  # Здесь вы можете получить цену товара из базы данных или других источников
+        item_price = 100
 
         if user_money < item_price:
             print(f"Недостаточно средств у пользователя {user_id}.")
             ch.basic_ack(delivery_tag=method.delivery_tag)
             return
 
-        # Списание средств
         if not spend_money(user_id, token, item_price):
             print(f"Не удалось списать средства у пользователя {user_id}.")
             ch.basic_ack(delivery_tag=method.delivery_tag)
@@ -90,11 +85,9 @@ def spend_money_callback(ch, method, properties, body):
 
 
 def start_consumer():
-    """Запуск RabbitMQ консюмера"""
     connection = pika.BlockingConnection(pika.ConnectionParameters(host=RABBITMQ_HOST, port=RABBITMQ_PORT))
     channel = connection.channel()
 
-    # Убедимся, что очередь создается с правильными параметрами
     channel.queue_declare(queue='spend_money', durable=True)
     channel.basic_consume(queue='spend_money', on_message_callback=spend_money_callback)
 

@@ -20,7 +20,6 @@ def add_transaction(ch, method, properties, body):
     currency = body['currency']
     status = body['status']
 
-    # Сохраняем транзакцию в базу данных
     transaction = Transaction.objects.create(user_id=user_id, amount=amount, currency=currency, status=status)
     print(f"Transaction saved: {transaction}")
     transaction.save()
@@ -31,10 +30,8 @@ def start_consumer():
     connection = pika.BlockingConnection(pika.ConnectionParameters(host=RABBITMQ_HOST, port=RABBITMQ_PORT))
     channel = connection.channel()
 
-    # Убедимся, что очередь существует
     channel.queue_declare(queue='add_transaction', durable=True)
 
-    # Подключаем callback-функцию
     channel.basic_consume(queue='add_transaction', on_message_callback=add_transaction)
 
     print("Ожидание сообщений...")
